@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace ContactsManager.Core.DTOs
@@ -10,6 +10,7 @@ namespace ContactsManager.Core.DTOs
 
         [Required]
         [EmailAddress]
+        [Remote(controller: "Account", action: "IsEmailAlreadyRegistered", ErrorMessage = "Email is already in use")]
         public string? Email { get; set; }
 
         [Required]

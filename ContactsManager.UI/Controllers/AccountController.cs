@@ -79,7 +79,7 @@ namespace ContactsManager.UI.Controllers
 
         [HttpPost]
         [Route("/account/login")]
-        public async Task<IActionResult> Login(LoginDTO loginDTO)
+        public async Task<IActionResult> Login(LoginDTO loginDTO, string? returnUrl)
         {
             /*
             if (!ModelState.IsValid)
@@ -93,6 +93,10 @@ namespace ContactsManager.UI.Controllers
 
             if (result.Succeeded)
             {
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return LocalRedirect(returnUrl);
+                }
                 return RedirectToAction("Index", "Person");
             }
             else
@@ -109,7 +113,21 @@ namespace ContactsManager.UI.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Person");
+            return RedirectToAction("Login");
+        }
+
+        [HttpGet("/account/isEmailAlreadyRegistered")]
+        public async Task<IActionResult> IsEmailAlreadyRegistered(string email)
+        {
+            ApplicationUser? user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return Json(true);
+            }
+            else
+            {
+                return Json(false);
+            }
         }
     }
 
