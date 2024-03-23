@@ -1,5 +1,6 @@
 using ContactsManager.Core.Domain.IdentityEntities;
 using Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -37,12 +38,21 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 	.AddUserStore<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>()
 	.AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
 
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+	options.LoginPath = "/account/login";
+});
+
 var app = builder.Build();
 
 Rotativa.AspNetCore.RotativaConfiguration.Setup("wwwroot", wkhtmltopdfRelativePath: "Rotativa");
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthorization();
 
 app.MapControllers();
 

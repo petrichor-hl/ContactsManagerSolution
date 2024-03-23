@@ -1,10 +1,13 @@
 ﻿using ContactsManager.Core.Domain.IdentityEntities;
 using ContactsManager.Core.DTOs;
+using CRUDExample.Controllers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ContactsManager.UI.Controllers
 {
+    [AllowAnonymous]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -56,13 +59,58 @@ namespace ContactsManager.UI.Controllers
             } 
             else
             {
+                ViewBag.Errors = new List<string>();
                 foreach (IdentityError error in result.Errors)
                 {
-                    ModelState.AddModelError("Register", error.Description);
-                    ViewBag.Errors = ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage);
+                    ViewBag.Errors.Add(error.Description);
                 }
+
                 return View(registerDTO);
             }
         }
+
+        [HttpGet]
+        [Route("/account/login")]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        [Route("/account/login")]
+        public async Task<IActionResult> Login(LoginDTO loginDTO)
+        {
+            /*
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Errors = ModelState.Values.SelectMany(temp => temp.Errors).Select(temp => temp.ErrorMessage);
+                return View(loginDTO);
+            }
+            */
+
+            var result = await _signInManager.PasswordSignInAsync(loginDTO.Email!, loginDTO.Password!, isPersistent: false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                return RedirectToAction("Index", "Person");
+            }
+            else
+            {
+                ViewBag.Errors = new List<string>()
+                {
+                    "Inalid email or password"
+                };
+            }
+            return View(loginDTO);
+        }
+
+        [Route("/account/logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Person");
+        }
     }
+
 }

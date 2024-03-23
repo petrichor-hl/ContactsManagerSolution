@@ -65,31 +65,34 @@
 
             </div>
 
+            @if (!ViewBag.CurrentUrl.Contains("account"))
+            {
+                <div class="navbar mb">
+                    <ul>
+                        <li>
+                            @if (ViewBag.CurrentUrl == "~/person/index")
+                            {
+                                <a asp-controller="Person" asp-action="Index" class="nav-active">Persons</a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Person" asp-action="Index">Persons</a>
+                            }
+                        </li>
+                        <li>
+                            @if (ViewBag.CurrentUrl == "~/countries/uploadFromExcel")
+                            {
+                                <a asp-controller="Countries" asp-action="UploadFromExcel" class="nav-active">Upload Countries</a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Countries" asp-action="UploadFromExcel">Upload Countries</a>
+                            }
+                        </li>
+                    </ul>
+                </div>
+            }
 
-            <div class="navbar mb">
-                <ul>
-                    <li>
-                        @if (ViewBag.CurrentUrl == "~/person/index")
-                        {
-                            <a asp-controller="Person" asp-action="Index" class="nav-active">Persons</a>
-                        }
-                        else
-                        {
-                            <a asp-controller="Person" asp-action="Index">Persons</a>
-                        }
-                    </li>
-                    <li>
-                        @if (ViewBag.CurrentUrl == "~/countries/uploadFromExcel")
-                        {
-                            <a asp-controller="Countries" asp-action="UploadFromExcel" class="nav-active">Upload Countries</a>
-                        }
-                        else
-                        {
-                            <a asp-controller="Countries" asp-action="UploadFromExcel">Upload Countries</a>
-                        }
-                    </li>
-                </ul>
-            </div>
 
             <div class="body">
                 @RenderBody()
