@@ -59,7 +59,7 @@ namespace CRUDExample.Controllers
         }
 
         [HttpGet]
-        [Route("persons/create")]    
+        [Route("/persons/create")]    
         public async Task<IActionResult> Create()
         {
             List<CountryResponse> countries = await _countriesService.GetAllCountries();

@@ -71,6 +71,22 @@
             </div>
         </div>
 
+        @* UserType *@
+        <div class="form-field flex">
+            <div class="w-25">
+                <label class="form-label">User Type</label>
+            </div>
+            <div class="flex-1">
+                @{
+                    string[] userTypes = Enum.GetNames(typeof(UserTypeOptions));
+                    foreach (string userType in userTypes)
+                    {
+                        <input type="radio" asp-for="UserType" id="@userType" value="@userType" checked="@(userType == "User")"/>
+                        <label for="@userType" class="mr">@userType</label>
+                    }
+                }
+            </div>
+        </div>
 
         @*Register button*@
         <div class="form-field flex">

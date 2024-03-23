@@ -1,5 +1,6 @@
 ﻿using ContactsManager.Core.Domain.IdentityEntities;
 using ContactsManager.Core.DTOs;
+using ContactsManager.Core.Enums;
 using CRUDExample.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -7,20 +8,27 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ContactsManager.UI.Controllers
 {
-    [AllowAnonymous]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager) 
+        private readonly RoleManager<ApplicationRole> _roleManager;
+
+        public AccountController(
+            UserManager<ApplicationUser> userManager, 
+            SignInManager<ApplicationUser> signInManager, 
+            RoleManager<ApplicationRole> roleManager
+        ) 
         { 
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
         }
 
         [HttpGet]
         [Route("/account/register")]
+        [Authorize("NotAuthorized")]
         public IActionResult Register()
         {
             return View();
@@ -28,7 +36,7 @@ namespace ContactsManager.UI.Controllers
 
         [HttpPost]
         [Route("/account/register")]
-
+        [Authorize("NotAuthorized")]
         public async Task<IActionResult> Register(RegisterDTO registerDTO)
         {
 
@@ -52,6 +60,36 @@ namespace ContactsManager.UI.Controllers
 
             if (result.Succeeded)
             {
+                // Check User Role
+                if (registerDTO.UserType == UserTypeOptions.Admin)
+                {
+                    // Create 'Admin' role
+                    if (await _roleManager.FindByNameAsync(UserTypeOptions.Admin.ToString()) == null)
+                    {
+                        ApplicationRole adminRole = new ApplicationRole()
+                        {
+                            Name = UserTypeOptions.Admin.ToString(),
+                        };
+                        await _roleManager.CreateAsync(adminRole);
+                    }
+
+                    // Attach 'Admin' role to the New User
+                    await _userManager.AddToRoleAsync(user, UserTypeOptions.Admin.ToString());
+                }
+                else
+                {
+                    if (await _roleManager.FindByNameAsync(UserTypeOptions.User.ToString()) == null)
+                    {
+                        ApplicationRole userRole = new ApplicationRole()
+                        {
+                            Name = UserTypeOptions.User.ToString(),
+                        };
+                        await _roleManager.CreateAsync(userRole);
+                    }
+                    // Attach 'User' role to the New User
+                    await _userManager.AddToRoleAsync(user, UserTypeOptions.User.ToString());
+                }
+
                 // SignIn
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
@@ -71,14 +109,15 @@ namespace ContactsManager.UI.Controllers
 
         [HttpGet]
         [Route("/account/login")]
+        [Authorize("NotAuthorized")]
         public IActionResult Login()
         {
             return View();
         }
 
-
         [HttpPost]
         [Route("/account/login")]
+        [Authorize("NotAuthorized")]
         public async Task<IActionResult> Login(LoginDTO loginDTO, string? returnUrl)
         {
             /*
@@ -97,6 +136,16 @@ namespace ContactsManager.UI.Controllers
                 {
                     return LocalRedirect(returnUrl);
                 }
+
+                ApplicationUser? user = await _userManager.FindByEmailAsync(loginDTO.Email!);
+                if (user != null)
+                {
+                    if (await _userManager.IsInRoleAsync(user, UserTypeOptions.Admin.ToString()))
+                    {
+                        return RedirectToAction("Index", "Home", new { area = "Admin" });
+                    }
+                }
+
                 return RedirectToAction("Index", "Person");
             }
             else
@@ -110,6 +159,7 @@ namespace ContactsManager.UI.Controllers
         }
 
         [Route("/account/logout")]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

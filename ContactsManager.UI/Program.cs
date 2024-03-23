@@ -39,7 +39,14 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 	.AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>();
 
 builder.Services.AddAuthorizationBuilder()
-    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
+	.AddPolicy("NotAuthorized", policy =>
+	{
+		policy.RequireAssertion(context =>
+		{
+			return !context.User.Identity.IsAuthenticated;
+		});
+	});
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
