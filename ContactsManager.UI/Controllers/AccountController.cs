@@ -132,7 +132,7 @@ namespace ContactsManager.UI.Controllers
 
             if (result.Succeeded)
             {
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && returnUrl != "/account/logout")
                 {
                     return LocalRedirect(returnUrl);
                 }
@@ -159,13 +159,13 @@ namespace ContactsManager.UI.Controllers
         }
 
         [Route("/account/logout")]
-        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login");
         }
 
+        [AllowAnonymous]
         [HttpGet("/account/isEmailAlreadyRegistered")]
         public async Task<IActionResult> IsEmailAlreadyRegistered(string email)
         {
